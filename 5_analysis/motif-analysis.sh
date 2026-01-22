@@ -13,7 +13,7 @@ PROJECT_DIR=".."
 WORK_DIR="$PROJECT_DIR/5_analysis"
 PEAKS_DIR="$PROJECT_DIR/4_peaks"
 REF_FASTA="$PROJECT_DIR/0_ref/GRCh37.p13.genome.fa"
-REF_GTF="$PROJECT_DIR/0_ref/gencode.v19.annotation.gtf"
+REF_GTF="$PROJECT_DIR/0_ref/gencode.v19.annotation.gtf.gz"
 TARGETS_BED="$WORK_DIR/targets.bed"
 TSS_WINDOW=25000
 
