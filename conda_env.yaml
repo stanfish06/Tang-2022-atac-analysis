@@ -1,0 +1,10 @@
+name: atac-export
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python==3.7.16
+  - meme
+  - sra-tools
+  - trim-galore
+  - libxcrypt
