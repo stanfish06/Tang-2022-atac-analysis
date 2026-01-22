@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
+# ============ Read alignemnt ============
+# Align trimmed fastq data to genome
+# deps:
+#   - bowtie2
+# usage:
+#   - chmod +x align.sh && ./align.sh
+# =======================================
+
 set -euo pipefail
 
-INDEX="../ref/bowtie2_index/GRCh37"
-INPUT_DIR="../2_trim"
+PROJECT_DIR=".."
+INDEX="$PROJECT_DIR/0_ref/bowtie2_index/GRCh37"
+INPUT_DIR="$PROJECT_DIR/2_trim"
 THREADS=12
 
 SAMPLES=(
