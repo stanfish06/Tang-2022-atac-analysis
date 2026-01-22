@@ -7,7 +7,7 @@
 #   - chmod +x trim-read.sh && ./trim-read.sh
 # ===================================================
 
-set -ouxe pipefail
+set -oue pipefail
 
 PROJECT_DIR=".."
 FASTQ_DIR="$PROJECT_DIR/1_fetch/"
