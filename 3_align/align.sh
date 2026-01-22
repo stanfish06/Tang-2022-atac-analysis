@@ -23,6 +23,7 @@ for sample in "${SAMPLES[@]}"; do
 
   echo "[$sample] Aligning..."
   bowtie2 --very-sensitive -X 2000 -k 10 -p "$THREADS" -x "$INDEX" \
+    --rg-id "$sample" --rg "SM:$sample" \
     -1 "$r1" -2 "$r2" 2>"logs/${sample}.bowtie2.log" \
     | samtools view -bS -@ 2 - > "bam/${sample}.bam"
 
