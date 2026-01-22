@@ -10,14 +10,14 @@ import os
 import glob
 
 SAMPLES = [
-    # "ATAC_hESC_r1",
-    # "ATAC_hESC_r2",
-    # "ATAC_hPGC_r1",
-    # "ATAC_hPGC_r2",
+    "ATAC_hESC_r1",
+    "ATAC_hESC_r2",
+    "ATAC_hPGC_r1",
+    "ATAC_hPGC_r2",
     "ATAC_hPGCLC_d2_r1",
     "ATAC_hPGCLC_d2_r2",
-    # "ATAC_hPGCLC_d4_r1",
-    # "ATAC_hPGCLC_d4_r2",
+    "ATAC_hPGCLC_d4_r1",
+    "ATAC_hPGCLC_d4_r2",
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

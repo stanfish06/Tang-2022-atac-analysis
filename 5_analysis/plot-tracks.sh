@@ -17,8 +17,8 @@ SAMPLES=(
 	# "ATAC_hPGC_r1"
 	# "ATAC_hPGC_r2"
 	"ATAC_hPGCLC_d2_r1"
-	"ATAC_hPGCLC_d2_r2"
-	# "ATAC_hPGCLC_d4_r1"
+	# "ATAC_hPGCLC_d2_r2"
+	"ATAC_hPGCLC_d4_r1"
 	# "ATAC_hPGCLC_d4_r2"
 )
 
