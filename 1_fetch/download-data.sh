@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# ================== Data download ==================
+# download fastq files
+# deps:
+#   - fasterq-dump
+#   - prefetch
+# usage:
+#   - chmod +x download-data.sh && ./download-data.sh
+#   - add more datasets to <SAMPLES> if needed
+# ===================================================
+
+set -oue pipefail
 
 # ATAC-seq samples from GSE159654
 #   SRR12849008 - ATAC_hESC_r1
@@ -22,21 +32,23 @@ declare -A SAMPLES=(
     ["SRR12849015"]="ATAC_hPGCLC_d4_r2"
 )
 
-OUTDIR="fastqs"
-mkdir -p "$OUTDIR"
+for srr in "${!SAMPLES[@]}"; do
+    echo "Prefetching: ${SAMPLES[$srr]}"
+    sample="${SAMPLES[$srr]}"
+    prefetch "$srr" --output-directory . &
+done
+wait
 
 for srr in "${!SAMPLES[@]}"; do
+    echo "Generating fastqs: ${SAMPLES[$srr]}"
     sample="${SAMPLES[$srr]}"
-
     prefetch "$srr" --output-directory .
+    fasterq-dump "$srr" --split-files --outdir . --temp .
 
-    fasterq-dump "$srr" --split-files --outdir "$OUTDIR" --temp .
-
-    mv "$OUTDIR/${srr}_1.fastq" "$OUTDIR/${sample}_1.fastq"
-    mv "$OUTDIR/${srr}_2.fastq" "$OUTDIR/${sample}_2.fastq"
-    gzip "$OUTDIR/${sample}_1.fastq" &
-    gzip "$OUTDIR/${sample}_2.fastq" &
+    mv "${srr}_1.fastq" "${sample}_1.fastq"
+    mv "${srr}_2.fastq" "${sample}_2.fastq"
+    gzip "${sample}_1.fastq" &
+    gzip "${sample}_2.fastq" &
     wait
-
     rm -rf "$srr"
 done
