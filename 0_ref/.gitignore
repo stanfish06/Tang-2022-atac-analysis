@@ -1,0 +1,3 @@
+*.gz
+*.fa
+bowtie2_index/
