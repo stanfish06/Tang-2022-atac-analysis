@@ -9,6 +9,10 @@
 
 set -oue pipefail
 
+echo "Download reference genome from gencode"
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz
+
 threads=8
 genome_gz="GRCh37.p13.genome.fa.gz"
 genome_fa="GRCh37.p13.genome.fa"
@@ -21,6 +25,7 @@ fi
 
 mkdir -p "$(dirname "$index_prefix")"
 
+echo "Build bowtie2 index for alignment"
 bowtie2-build \
 	--threads "$threads" \
 	"$genome_fa" \
