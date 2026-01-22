@@ -11,23 +11,41 @@ set -oue pipefail
 
 PROJECT_DIR=".."
 
-TARGETS_FILE="targets.bed"
-BW_FILE="bigwigs/ATAC_hPGCLC_d2_r1.bw"
-PEAK_FILE="ATAC_hPGCLC_d2_r1/peaks_simple.bed"
-GENES_FILE="$PROJECT_DIR/0_ref/gencode.v19.annotation.gtf.gz"
+SAMPLES=(
+	# "ATAC_hESC_r1"
+	# "ATAC_hESC_r2"
+	# "ATAC_hPGC_r1"
+	# "ATAC_hPGC_r2"
+	"ATAC_hPGCLC_d2_r1"
+	"ATAC_hPGCLC_d2_r2"
+	# "ATAC_hPGCLC_d4_r1"
+	# "ATAC_hPGCLC_d4_r2"
+)
 
-while read -r chrom start end name; do
-    
-    echo "Processing $name..."
-    
-    # Define paths
-    gene_dir="ATAC_hPGCLC_d2_r1/fimo_out/erk_viz_${name}"
-    fimo_gff="${gene_dir}/fimo.gff"
-    bed_dir="${gene_dir}/beds"
-    
-    if [[ -f "$fimo_gff" ]]; then
-        mkdir -p "$bed_dir"
-        awk -v out_dir="$bed_dir" '
+TARGETS_FILE="targets.bed"
+GENES_FILE="$PROJECT_DIR/0_ref/gencode.v19.annotation.gtf.gz"
+TOP_MOTIFS=("ERG" "ESR1" "ETS1" "RUNX2" "SNAI2" "TAL1")
+COLORS=("#0072BD" "#D95319" "#EDB120" "#7E2F8E" "#77AC30" "#4DBEEE" "#A2142F")
+
+for sample in "${SAMPLES[@]}"; do
+	echo "=== Processing sample: $sample ==="
+
+	BW_FILE="bigwigs/${sample}.bw"
+	SAMPLE_DIR="$sample"
+	OUTPUT_DIR="${sample}/tracks"
+	mkdir -p "$OUTPUT_DIR"
+
+	while read -r chrom start end name; do
+
+		echo "Processing $name..."
+
+		gene_dir="${SAMPLE_DIR}/fimo_out/erk_viz_${name}"
+		fimo_gff="${gene_dir}/fimo.gff"
+		bed_dir="${gene_dir}/beds"
+
+		if [[ -f "$fimo_gff" ]]; then
+			mkdir -p "$bed_dir"
+			awk -v out_dir="$bed_dir" '
         BEGIN {OFS="\t"}
         !/^#/ {
             split($9, a, ";");
@@ -44,16 +62,14 @@ while read -r chrom start end name; do
                 print $1, $4-1, $5, motif_name, $6, $7 >> (out_dir "/" motif_name ".bed");
             }
         }' "$fimo_gff"
-    else
-        echo "  > Warning: FIMO GFF not found ($fimo_gff). Skipping."
-        continue
-    fi
+		else
+			echo "  > Warning: FIMO GFF not found ($fimo_gff). Skipping."
+			continue
+		fi
 
-    top_motifs=("ERG" "ESR1" "ETS1" "RUNX2" "SNAI2" "TAL1")
+		ini_file="${OUTPUT_DIR}/config_${name}.ini"
 
-    ini_file="config_${name}.ini"
-    
-    cat <<EOF > "$ini_file"
+		cat <<EOF >"$ini_file"
 [x-axis]
 fontsize = 16
 
@@ -67,15 +83,14 @@ file_type = bigwig
 
 EOF
 
-    colors=("#0072BD" "#D95319" "#EDB120" "#7E2F8E" "#77AC30" "#4DBEEE" "#A2142F")
-    c_idx=0
-    
-    for motif in "${top_motifs[@]}"; do
-        bed_file="$bed_dir/${motif}.bed"
-        color="${colors[$c_idx]}"
-        
-        if [[ -f "$bed_file" ]]; then
-            cat <<EOF >> "$ini_file"
+		c_idx=0
+
+		for motif in "${TOP_MOTIFS[@]}"; do
+			bed_file="$bed_dir/${motif}.bed"
+			color="${COLORS[$c_idx]}"
+
+			if [[ -f "$bed_file" ]]; then
+				cat <<EOF >>"$ini_file"
 [$motif]
 file = $bed_file
 title = $motif
@@ -87,13 +102,13 @@ border_color = none
 file_type = bed
 
 EOF
-        else
-            :
-        fi
-        c_idx=$(( (c_idx + 1) % 7 ))
-    done
-    
-    cat <<EOF >> "$ini_file"
+			else
+				:
+			fi
+			c_idx=$(((c_idx + 1) % 7))
+		done
+
+		cat <<EOF >>"$ini_file"
 [spacer]
 height = 1
 
@@ -109,18 +124,21 @@ gene_rows = 4
 fontsize = 14
 EOF
 
-    output="${name}.png"
-    region="${chrom}:${start}-${end}"
-    
-    echo "  > Plotting to $output..."
-    pyGenomeTracks \
-        --tracks "$ini_file" \
-        --region "$region" \
-        --outFileName "$output" \
-        --dpi 600 \
-        --width 40 \
-        --fontSize 10
+		output="${OUTPUT_DIR}/${name}.png"
+		region="${chrom}:${start}-${end}"
 
-done < "$TARGETS_FILE"
+		echo "  > Plotting to $output..."
+		pyGenomeTracks \
+			--tracks "$ini_file" \
+			--region "$region" \
+			--outFileName "$output" \
+			--dpi 600 \
+			--width 40 \
+			--fontSize 10
 
-echo "Done"
+	done <"$TARGETS_FILE"
+
+	echo "=== Done: $sample ==="
+done
+
+echo "All done"
