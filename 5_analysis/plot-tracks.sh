@@ -40,11 +40,39 @@ for sample in "${SAMPLES[@]}"; do
 		echo "Processing $name..."
 
 		gene_dir="${SAMPLE_DIR}/fimo_out/erk_viz_${name}"
+		fimo_txt="${gene_dir}/fimo.txt"
 		fimo_gff="${gene_dir}/fimo.gff"
 		bed_dir="${gene_dir}/beds"
 
-		if [[ -f "$fimo_gff" ]]; then
+		if [[ -f "$fimo_txt" ]]; then
 			mkdir -p "$bed_dir"
+			rm -f "$bed_dir"/*.bed
+			awk -F '\t' -v out_dir="$bed_dir" '
+        BEGIN {OFS="\t"}
+        !/^#/ {
+            split($1, m, "_");
+            motif_name = m[1];
+
+            n = split($2, parts, "::");
+            region = parts[n];
+            split(region, r, ":");
+            chrom = r[1];
+            split(r[2], coords, "-");
+            region_start = coords[1] + 0;
+
+            if (motif_name == "" || chrom == "" || region_start == 0) {
+                next;
+            }
+
+            bed_start = region_start + $3 - 2;
+            bed_end = region_start + $4 - 1;
+
+            # BED: chrom start end name score strand
+            print chrom, bed_start, bed_end, motif_name, $6, $5 >> (out_dir "/" motif_name ".bed");
+        }' "$fimo_txt"
+		elif [[ -f "$fimo_gff" ]]; then
+			mkdir -p "$bed_dir"
+			rm -f "$bed_dir"/*.bed
 			awk -v out_dir="$bed_dir" '
         BEGIN {OFS="\t"}
         !/^#/ {
@@ -63,7 +91,7 @@ for sample in "${SAMPLES[@]}"; do
             }
         }' "$fimo_gff"
 		else
-			echo "  > Warning: FIMO GFF not found ($fimo_gff). Skipping."
+			echo "  > Warning: FIMO output not found ($fimo_txt or $fimo_gff). Skipping."
 			continue
 		fi
 

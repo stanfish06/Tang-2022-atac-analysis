@@ -39,6 +39,29 @@ def get_group_label(gene: str) -> tuple[str, str]:
         return f"{gene}", "D_Other"
 
 
+def read_fimo_table(path: str) -> pd.DataFrame:
+    header = None
+    with open(path, "r", encoding="utf-8") as handle:
+        for line in handle:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith("#"):
+                possible = stripped.lstrip("#").strip()
+                if "\t" in possible:
+                    header = possible.split("\t")
+                continue
+            break
+
+    if header:
+        df = pd.read_csv(path, sep="\t", comment="#", header=None, names=header)
+    else:
+        df = pd.read_csv(path, sep="\t")
+
+    df.columns = [c.lstrip("#").strip() for c in df.columns]
+    return df
+
+
 def process_sample(sample: str) -> None:
     print(f"=== Processing sample: {sample} ===")
 
@@ -60,21 +83,39 @@ def process_sample(sample: str) -> None:
         dirname = os.path.basename(d)
         gene_name = dirname.replace("erk_viz_", "")
 
-        fimo_file = os.path.join(d, "fimo.tsv")
+        fimo_file = os.path.join(d, "fimo.txt")
+        if not os.path.exists(fimo_file):
+            fimo_alt = os.path.join(d, "fimo.tsv")
+            if os.path.exists(fimo_alt):
+                fimo_file = fimo_alt
 
         if not os.path.exists(fimo_file):
-            print(f"  > Warning: No fimo.tsv in {d}")
+            print(f"  > Warning: No FIMO table in {d}")
             continue
 
-        df = pd.read_csv(fimo_file, sep="\t", comment="#")
+        df = read_fimo_table(fimo_file)
 
         if df.empty:
             continue
 
-        if "q-value" in df.columns:
-            df = df[df["q-value"] <= Q_THRESHOLD]
+        q_col = None
+        for col in ("q-value", "q_value", "qvalue"):
+            if col in df.columns:
+                q_col = col
+                break
+        if q_col is not None:
+            df = df[df[q_col] <= Q_THRESHOLD]
 
-        counts = df["motif_id"].value_counts()
+        motif_col = None
+        for col in ("motif_id", "pattern name", "pattern_name"):
+            if col in df.columns:
+                motif_col = col
+                break
+        if motif_col is None:
+            print(f"  > Warning: No motif column in {fimo_file}")
+            continue
+
+        counts = df[motif_col].value_counts()
 
         data[gene_name] = counts
 
