@@ -10,3 +10,6 @@ dependencies:
   - meme
   - samtools
   - bowtie2
+  - picard
+  - pygenometracks
+  - deeptools
