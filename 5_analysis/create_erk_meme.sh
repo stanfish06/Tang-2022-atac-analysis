@@ -10,14 +10,14 @@
 set -oue pipefail
 
 PROJECT_DIR=".."
-TARGETS_FILE="$PROJECT_DIR/5_analysis/direct_erk_targets.txt"
+TARGETS_FILE="$PROJECT_DIR/5_analysis/direct_human_erk_targets.txt"
 HOCOMOCO_DB="$PROJECT_DIR/5_analysis/meme_databases/HOCOMOCOv11_core_HUMAN_mono.meme"
 OUTPUT_DB="$PROJECT_DIR/5_analysis/meme_databases/erk_targets.meme"
 
 echo "Creating ERK Targets MEME database..."
 
 # MEME Header
-cat <<EOF > "$OUTPUT_DB"
+cat <<EOF >"$OUTPUT_DB"
 MEME version 4
 
 ALPHABET= ACGT
@@ -47,7 +47,7 @@ awk -v targets="$TARGETS_REGEX" '
     print_flag == 1 {
         print $0
     }
-' "$HOCOMOCO_DB" >> "$OUTPUT_DB"
+' "$HOCOMOCO_DB" >>"$OUTPUT_DB"
 
 count=$(grep "MOTIF" "$OUTPUT_DB" | wc -l)
 echo "Done. Extracted $count motifs to $OUTPUT_DB"
