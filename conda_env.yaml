@@ -13,3 +13,10 @@ dependencies:
   - picard
   - pygenometracks
   - deeptools
+  - macs2
+  - seaborn
+  - scipy
+  - matplotlib
+  - numpy
+  - bedtools
+  - pandas
